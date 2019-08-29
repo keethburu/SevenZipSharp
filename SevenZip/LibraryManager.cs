@@ -39,8 +39,18 @@ namespace SevenZip
             {
                 return ConfigurationManager.AppSettings["7zLocation"];
             }
+            var dll = Environment.Is64BitProcess ? "7z64.dll" : "7z.dll";
 
-            return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), Environment.Is64BitProcess ? "7z64.dll" : "7z.dll");
+            var executingAssemblyLocationDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var option1 = Path.Combine(executingAssemblyLocationDir, dll);
+            if (File.Exists(option1))
+            {
+                return option1;
+            }
+            // otherwise, when runing from xunit/VS-TEst Explorer, this might work:
+            var executingAssemblyCodeBase = new Uri(Assembly.GetExecutingAssembly().CodeBase);
+            var executingAssemblyCodePath = Path.GetDirectoryName( Uri.UnescapeDataString(executingAssemblyCodeBase.AbsolutePath));
+            return Path.Combine(executingAssemblyCodePath, dll);
         }
 
         /// <summary>
